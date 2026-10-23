@@ -54,7 +54,9 @@ $(document).ready(function(){
           });
         },
         error: function(error) {
-          console.error('Error al cargar proyectos:', error);}
+          console.error('Error al cargar proyectos:', error);
+          $('#cardContainer').html('<div class="alert alert-danger" role="alert">No se pudieron cargar los proyectos. Intente nuevamente más tarde.</div>');
+        }
       });
 });
 

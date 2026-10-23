@@ -1,0 +1,7 @@
+{
+  "name": "ejercicio5cliente-pruebas-js",
+  "private": true,
+  "description": "Pruebas automaticas de los scripts del frontend (node:test + jsdom)",
+  "scripts": { "test": "node --test --test-reporter=spec" },
+  "devDependencies": { "jsdom": "^24.1.0" }
+}

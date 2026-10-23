@@ -34,13 +34,15 @@ public class GestorControllerTest {
     @Autowired
     private GestorController controller;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     private MockRestServiceServer mockServer;
 
     @BeforeEach
     public void setUp() {
-        // Al crear RestTemplate dentro del controlador de forma manual,
-        // vinculamos MockRestServiceServer a una nueva instancia para interceptar peticiones.
-        RestTemplate restTemplate = new RestTemplate();
+        // El controlador usa el RestTemplate inyectado: se vincula el servidor simulado
+        // a esa misma instancia para interceptar las peticiones al backend.
         mockServer = MockRestServiceServer.createServer(restTemplate);
     }
 
