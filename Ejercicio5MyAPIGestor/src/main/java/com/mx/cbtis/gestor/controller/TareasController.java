@@ -44,7 +44,7 @@ public class TareasController {
 	public int addTareas(@RequestBody Tareas tareas) {
 		
 		int flag = 0;
-		if(!tareas.equals(null)) {
+		if(esValido(tareas)) {
 			tareastable.save(tareas);
 			flag = 1;
 		}
@@ -56,7 +56,7 @@ public class TareasController {
 	public int updateTareas(@RequestBody Tareas tareas) {
 		
 		int flag = 0;
-		if(!tareas.equals(null)) {
+		if(esValido(tareas)) {
 			tareastable.save(tareas);
 			flag = 1;
 		}
@@ -82,6 +82,15 @@ public class TareasController {
 		List<Tareas> listaTareas = new ArrayList<>();
 		tareastable.findAll().forEach(listaTareas :: add);
 		return listaTareas;
+	}
+
+
+	private boolean texto(String s) {
+		return s != null && !s.trim().isEmpty();
+	}
+	
+	private boolean esValido(Tareas o) {
+		return o != null && texto(o.getNombre()) && o.getId_proyecto() != null;
 	}
 
 }

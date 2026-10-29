@@ -55,7 +55,7 @@ public class UsuarioController {
 	@PostMapping("/addUsuario")
 	public int addUsuario(@RequestBody Usuario usuario) {
 		int flag = 0;
-		if(!usuario.equals(null)) {
+		if(esUsuarioValido(usuario)) {
 			usuariotable.save(usuario);
 			flag = 1;
 		}
@@ -66,7 +66,7 @@ public class UsuarioController {
 	@PostMapping("/updateUsuario")
 	public int updateUsuario(@RequestBody Usuario usuario) {
 		int flag = 0;
-		if(!usuario.equals(null)) {
+		if(esUsuarioValido(usuario)) {
 			usuariotable.save(usuario);
 			flag = 1;
 		}
@@ -83,6 +83,13 @@ public class UsuarioController {
 		}
 		
 		return flag;
+	}
+	
+	private boolean esUsuarioValido(Usuario usuario) {
+		return usuario != null
+				&& usuario.getNombre() != null && !usuario.getNombre().trim().isEmpty()
+				&& usuario.getCorreo_electronico() != null && !usuario.getCorreo_electronico().trim().isEmpty()
+				&& usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty();
 	}
 	
 	@PostMapping("/buscarUsuarios")

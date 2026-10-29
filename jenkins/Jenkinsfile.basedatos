@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+    tools {
+        jdk 'jdk21'
+        maven 'Maven 3.9.9'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'git://127.0.0.1/admin-proyectos.git'
+            }
+        }
+        stage('Ver Directorio') {
+            steps {
+                sh 'ls -la'
+                sh 'ls -la database'
+            }
+        }
+        stage('Lint SQL (sqlfluff)') {
+            steps {
+                bat '''
+                    if not exist reportes mkdir reportes
+                    docker run --rm -v "%WORKSPACE%":/sql -w /sql sqlfluff/sqlfluff:latest lint database/schema.sql --dialect mariadb > reportes\\sqlfluff.txt
+                    type reportes\\sqlfluff.txt
+                    exit /b 0
+                '''
+            }
+        }
+        stage('Validar esquema (MariaDB temporal)') {
+            steps {
+                sh '''
+                    docker rm -f mariadb-ci >/dev/null 2>&1 || true
+                    docker run -d --name mariadb-ci -e MARIADB_ROOT_PASSWORD=ci-temporal mariadb:11
+                    for i in $(seq 1 40); do
+                        docker exec mariadb-ci mariadb -uroot -pci-temporal -e "select 1" >/dev/null 2>&1 && break
+                        sleep 3
+                    done
+                    docker exec -i mariadb-ci mariadb -uroot -pci-temporal < database/schema.sql
+                    docker exec -i mariadb-ci mariadb -uroot -pci-temporal < database/validar.sql
+                '''
+            }
+            post {
+                always {
+                    sh 'docker rm -f mariadb-ci >/dev/null 2>&1 || true'
+                }
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonnarServer') {
+                    bat '''
+                        docker run --rm -v "%WORKSPACE%":/usr/src sonarsource/sonar-scanner-cli -Dsonar.projectKey=BaseDatos-dbgestor -Dsonar.projectName=BaseDatos-dbgestor -Dsonar.sources=database -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.token=%SONAR_AUTH_TOKEN%
+                    '''
+                }
+            }
+        }
+        stage('Security Scan (SAST) - Semgrep') {
+            steps {
+                bat '''
+                    docker run --rm -v "%WORKSPACE%":/src -w /src semgrep/semgrep semgrep scan --config=auto --exclude target --exclude node_modules --json --output=reportes/semgrep-basedatos.json .
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'reportes/*', allowEmptyArchive: true, fingerprint: true
+                }
+            }
+        }
+    }
+}

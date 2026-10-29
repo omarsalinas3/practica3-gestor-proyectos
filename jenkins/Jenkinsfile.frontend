@@ -1,0 +1,63 @@
+pipeline {
+    agent any
+    tools {
+        jdk 'jdk21'
+        maven 'Maven 3.9.9'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'git://127.0.0.1/admin-proyectos.git'
+            }
+        }
+        stage('Ver Directorio') {
+            steps {
+                sh 'ls -la'
+                sh 'java -version'
+                sh 'mvn -version'
+            }
+        }
+        stage('Build & Test') {
+            steps {
+                dir('Ejercicio5Cliente') {
+                    sh 'mvn -B clean verify -Dsurefire.useFile=false'
+                }
+            }
+            post {
+                always {
+                    junit 'Ejercicio5Cliente/target/surefire-reports/*.xml'
+                    jacoco execPattern: 'Ejercicio5Cliente/target/jacoco.exec', classPattern: 'Ejercicio5Cliente/target/classes', sourcePattern: 'Ejercicio5Cliente/src/main/java'
+                    recordCoverage tools: [[parser: 'JACOCO', pattern: 'Ejercicio5Cliente/target/site/jacoco/jacoco.xml']], sourceDirectories: [[path: 'Ejercicio5Cliente/src/main/java']]
+                }
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonnarServer') {
+                    dir('Ejercicio5Cliente') {
+                        sh '''
+                            mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
+                              -Dsonar.projectKey=Ejercicio5Cliente \
+                              -Dsonar.projectName=Ejercicio5Cliente \
+                              -Dsonar.host.url=http://localhost:9000 \
+                              -Dsonar.token=$SONAR_AUTH_TOKEN
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Security Scan (SAST) - Semgrep') {
+            steps {
+                bat '''
+                    if not exist reportes mkdir reportes
+                    docker run --rm -v "%WORKSPACE%":/src -w /src semgrep/semgrep semgrep scan --config=auto --exclude target --exclude node_modules --json --output=reportes/semgrep-frontend.json .
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'reportes/semgrep-frontend.json', allowEmptyArchive: true, fingerprint: true
+                }
+            }
+        }
+    }
+}

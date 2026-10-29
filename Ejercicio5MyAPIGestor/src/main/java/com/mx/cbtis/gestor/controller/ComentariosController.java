@@ -44,7 +44,7 @@ public class ComentariosController {
 	public int addComentario(@RequestBody Comentarios comentario) {
 		
 		int flag = 0;
-		if(!comentario.equals(null)) {
+		if(esValido(comentario)) {
 			comentariostable.save(comentario);
 			flag = 1;
 		}
@@ -56,7 +56,7 @@ public class ComentariosController {
 	public int updateComentario(@RequestBody Comentarios comentario) {
 		
 		int flag = 0;
-		if(!comentario.equals(null)) {
+		if(esValido(comentario)) {
 			comentariostable.save(comentario);
 			flag = 1;
 		}
@@ -82,6 +82,15 @@ public class ComentariosController {
 		List<Comentarios> listaComentarios = new ArrayList<>();
 		comentariostable.findAll().forEach(listaComentarios :: add);
 		return listaComentarios;
+	}
+
+
+	private boolean texto(String s) {
+		return s != null && !s.trim().isEmpty();
+	}
+	
+	private boolean esValido(Comentarios o) {
+		return o != null && texto(o.getId_usuario()) && o.getId_tarea() != null && texto(o.getTexto_comentario());
 	}
 
 }

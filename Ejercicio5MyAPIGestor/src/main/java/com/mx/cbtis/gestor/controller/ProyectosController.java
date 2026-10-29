@@ -49,7 +49,7 @@ public class ProyectosController {
 	public int addProyecto(@RequestBody Proyectos proyecto) {
 		
 		int flag = 0;
-		if(!proyecto.equals(null)) {
+		if(esValido(proyecto)) {
 			
 			proyectostable.save(proyecto);
 			flag = 1;
@@ -62,7 +62,7 @@ public class ProyectosController {
 	public int updateProyecto(@RequestBody Proyectos proyecto) {
 		
 		int flag = 0;
-		if(!proyecto.equals(null)) {
+		if(esValido(proyecto)) {
 			proyectostable.save(proyecto);
 			flag = 1;
 		}
@@ -88,6 +88,15 @@ public class ProyectosController {
 		List<Proyectos> listaProyectos = new ArrayList<>();
 		proyectostable.findAll().forEach(listaProyectos :: add);
 		return listaProyectos;
+	}
+
+
+	private boolean texto(String s) {
+		return s != null && !s.trim().isEmpty();
+	}
+	
+	private boolean esValido(Proyectos o) {
+		return o != null && texto(o.getNombre());
 	}
 
 }

@@ -38,7 +38,7 @@ public class AsignacionesController {
 	public int addAsignacion(@RequestBody Asignaciones asignacion) {
 		
 		int flag = 0;
-		if(!asignacion.equals(null)) {
+		if(esValido(asignacion)) {
 			
 			asignacionestable.save(asignacion);
 			flag = 1;
@@ -51,7 +51,7 @@ public class AsignacionesController {
 	public int updateAsignacion(@RequestBody Asignaciones asignacion) {
 		
 		int flag = 0;
-		if(!asignacion.equals(null)) {
+		if(esValido(asignacion)) {
 			asignacionestable.save(asignacion);
 			flag = 1;
 		}
@@ -78,4 +78,9 @@ public class AsignacionesController {
 		asignacionestable.findAll().forEach(listaAsignaciones :: add);
 		return listaAsignaciones;
 	}
+
+	private boolean esValido(Asignaciones o) {
+		return o != null && o.getId_usuario() != null && o.getId_tarea() != null;
+	}
+
 }
