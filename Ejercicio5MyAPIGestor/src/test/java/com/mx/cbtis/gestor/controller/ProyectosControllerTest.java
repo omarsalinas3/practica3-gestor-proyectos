@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.mx.cbtis.gestor.dto.*;
 import com.mx.cbtis.gestor.modelo.*;
 import com.mx.cbtis.gestor.repository.*;
 
@@ -24,12 +24,12 @@ class ProyectosControllerTest {
 	@Mock ProtectosRepository repo;
 	@InjectMocks ProyectosController controller;
 
-	private Proyectos valido() {
-		return new Proyectos(1, "Proy", "desc", "2026-01-01", "2026-02-01", "En proceso", "/Images/blanco.png");
+	private ProyectosDTO valido() {
+		return new ProyectosDTO(1, "Proy", "desc", "2026-01-01", "2026-02-01", "En proceso", "/Images/blanco.png");
 	}
 
 	@Test void buscarExistente() {
-		when(repo.findById(1)).thenReturn(Optional.of(valido()));
+		when(repo.findById(1)).thenReturn(Optional.of(valido().toEntity()));
 		assertEquals("Proy", controller.getProyecto(1).getNombre());
 	}
 
@@ -40,25 +40,26 @@ class ProyectosControllerTest {
 
 	@Test void addValidoEInvalido() {
 		assertEquals(1, controller.addProyecto(valido()));
-		assertEquals(0, controller.addProyecto(new Proyectos()));
+		assertEquals(0, controller.addProyecto(new ProyectosDTO(null, null, null, null, null, null, null)));
 		assertEquals(0, controller.addProyecto(null));
-		assertEquals(0, controller.addProyecto(new Proyectos(null, " ", null, null, null, null, null)));
+		assertEquals(0, controller.addProyecto(new ProyectosDTO(null, " ", null, null, null, null, null)));
 		verify(repo, times(1)).save(any(Proyectos.class));
 	}
 
 	@Test void updateValidoEInvalido() {
 		assertEquals(1, controller.updateProyecto(valido()));
-		assertEquals(0, controller.updateProyecto(new Proyectos()));
+		assertEquals(0, controller.updateProyecto(new ProyectosDTO(null, null, null, null, null, null, null)));
 		verify(repo, times(1)).save(any(Proyectos.class));
 	}
 
-	@Test void deleteValido() {
+	@Test void deleteValidoYNulo() {
 		assertEquals(1, controller.deleteProyecto(valido()));
-		verify(repo).delete(any(Proyectos.class));
+		assertEquals(0, controller.deleteProyecto(null));
+		verify(repo, times(1)).delete(any(Proyectos.class));
 	}
 
 	@Test void listar() {
-		when(repo.findAll()).thenReturn(Arrays.asList(valido()));
+		when(repo.findAll()).thenReturn(Arrays.asList(valido().toEntity()));
 		assertEquals(1, controller.getProyectos().size());
 	}
 }

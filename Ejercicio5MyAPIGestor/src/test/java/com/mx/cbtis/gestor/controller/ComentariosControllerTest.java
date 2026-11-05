@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.mx.cbtis.gestor.dto.*;
 import com.mx.cbtis.gestor.modelo.*;
 import com.mx.cbtis.gestor.repository.*;
 
@@ -24,19 +24,17 @@ class ComentariosControllerTest {
 	@Mock ComentariosRepository repo;
 	@InjectMocks ComentariosController controller;
 
-	private Comentarios valido() {
-		return new Comentarios(1, "5", 3, "Texto", "2026-10-12 18:30");
+	private ComentariosDTO valido() {
+		return new ComentariosDTO(1, "5", 3, "Texto", "2026-10-12 18:30");
 	}
 
 	@Test void comentariosPorTarea() {
-		when(repo.findByTarea(3)).thenReturn(Arrays.asList(valido()));
-		Comentarios filtro = new Comentarios();
-		filtro.setId_tarea(3);
-		assertEquals(1, controller.getComentario(filtro).size());
+		when(repo.findByTarea(3)).thenReturn(Arrays.asList(valido().toEntity()));
+		assertEquals(1, controller.getComentario(new ComentariosDTO(null, null, 3, null, null)).size());
 	}
 
 	@Test void buscarExistenteEInexistente() {
-		when(repo.findById(1)).thenReturn(Optional.of(valido()));
+		when(repo.findById(1)).thenReturn(Optional.of(valido().toEntity()));
 		when(repo.findById(2)).thenReturn(Optional.empty());
 		assertEquals("Texto", controller.getComentario(1).getTexto_comentario());
 		assertNull(controller.getComentario(2).getId_comentario());
@@ -44,27 +42,28 @@ class ComentariosControllerTest {
 
 	@Test void addValidoEInvalido() {
 		assertEquals(1, controller.addComentario(valido()));
-		assertEquals(0, controller.addComentario(new Comentarios()));
+		assertEquals(0, controller.addComentario(new ComentariosDTO(null, null, null, null, null)));
 		assertEquals(0, controller.addComentario(null));
-		assertEquals(0, controller.addComentario(new Comentarios(null, "", 1, "t", null)));
-		assertEquals(0, controller.addComentario(new Comentarios(null, "5", null, "t", null)));
-		assertEquals(0, controller.addComentario(new Comentarios(null, "5", 1, "  ", null)));
+		assertEquals(0, controller.addComentario(new ComentariosDTO(null, "", 1, "t", null)));
+		assertEquals(0, controller.addComentario(new ComentariosDTO(null, "5", null, "t", null)));
+		assertEquals(0, controller.addComentario(new ComentariosDTO(null, "5", 1, "  ", null)));
 		verify(repo, times(1)).save(any(Comentarios.class));
 	}
 
 	@Test void updateValidoEInvalido() {
 		assertEquals(1, controller.updateComentario(valido()));
-		assertEquals(0, controller.updateComentario(new Comentarios()));
+		assertEquals(0, controller.updateComentario(new ComentariosDTO(null, null, null, null, null)));
 		verify(repo, times(1)).save(any(Comentarios.class));
 	}
 
-	@Test void deleteValido() {
+	@Test void deleteValidoYNulo() {
 		assertEquals(1, controller.deleteComentario(valido()));
-		verify(repo).delete(any(Comentarios.class));
+		assertEquals(0, controller.deleteComentario(null));
+		verify(repo, times(1)).delete(any(Comentarios.class));
 	}
 
 	@Test void listar() {
-		when(repo.findAll()).thenReturn(Arrays.asList(valido(), valido()));
+		when(repo.findAll()).thenReturn(Arrays.asList(valido().toEntity(), valido().toEntity()));
 		assertEquals(2, controller.getComentarios().size());
 	}
 }
