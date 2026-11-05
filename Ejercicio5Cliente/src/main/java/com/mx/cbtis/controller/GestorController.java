@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -34,8 +33,11 @@ import com.mx.cbtis.modelo.Usuario;
 @Controller
 public class GestorController {
 	
-	@Autowired
-	private RestTemplate template;
+	private final RestTemplate template;
+
+	public GestorController(RestTemplate template) {
+		this.template = template;
+	}
 	
 	/**
 	 * Si el backend no responde o devuelve un error, se captura la excepcion y se

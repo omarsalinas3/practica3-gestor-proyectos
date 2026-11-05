@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,8 +31,7 @@ class GestorControllerTest {
 	void setUp() {
 		RestTemplate template = new RestTemplate();
 		backend = MockRestServiceServer.createServer(template);
-		GestorController controller = new GestorController();
-		ReflectionTestUtils.setField(controller, "template", template);
+		GestorController controller = new GestorController(template);
 		mvc = MockMvcBuilders.standaloneSetup(controller).build();
 	}
 
