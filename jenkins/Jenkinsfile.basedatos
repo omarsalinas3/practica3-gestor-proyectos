@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'git://127.0.0.1/admin-proyectos.git'
+                git branch: 'main', url: 'https://github.com/omarsalinas3/practica3-gestor-proyectos.git'
             }
         }
         stage('Ver Directorio') {
