@@ -7,7 +7,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 # Las pruebas y la cobertura se ejecutan en el pipeline de Jenkins; aqui solo se empaqueta.
-RUN --mount=type=cache,target=/root/.m2 mvn -B -q -Dmaven.test.skip=true package
+RUN mvn -B -q -Dmaven.test.skip=true package
 
 # ---- Etapa 2: imagen de ejecucion ----
 FROM eclipse-temurin:21-jre
