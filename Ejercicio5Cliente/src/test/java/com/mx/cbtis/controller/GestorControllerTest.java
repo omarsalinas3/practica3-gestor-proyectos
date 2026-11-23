@@ -52,6 +52,22 @@ class GestorControllerTest {
 	}
 
 	@Test
+	@DisplayName("AUT-D01 Despliegue: la direccion del backend es configurable (Docker Compose)")
+	void AUT_D01_direccionDelBackendConfigurable() throws Exception {
+		RestTemplate template = new RestTemplate();
+		MockRestServiceServer servidor = MockRestServiceServer.createServer(template);
+		MockMvc mvcDocker = MockMvcBuilders.standaloneSetup(new GestorController(template, "http://backend:8081")).build();
+		servidor.expect(requestTo("http://backend:8081/buscarProyectos"))
+				.andExpect(method(HttpMethod.POST))
+				.andRespond(withSuccess("[{\"id_proyecto\":1,\"nombre\":\"Proyecto A\"}]", MediaType.APPLICATION_JSON));
+
+		mvcDocker.perform(post("/consultarProyectos"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].nombre").value("Proyecto A"));
+		servidor.verify();
+	}
+
+	@Test
 	@DisplayName("AUT-F01 Servicio de consulta: el backend devuelve un error")
 	void AUT_F01_consultarProyectosConErrorDelBackend() throws Exception {
 		backend.expect(requestTo("http://localhost:8081/buscarProyectos"))

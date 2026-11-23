@@ -1,0 +1,72 @@
+# Despliegue de la aplicacion Gestor de proyectos con las imagenes Docker de los microservicios.
+#   docker compose up -d --build     -> construye las imagenes y levanta todo
+#   docker compose down              -> detiene (agrega -v para borrar tambien la base de datos)
+# Frontend: http://localhost:9080    Backend: http://localhost:8081
+name: gestor-proyectos
+
+services:
+  db:
+    image: mariadb:11
+    container_name: gestor-db
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_local}
+      MARIADB_DATABASE: dbgestor
+      MARIADB_USER: ${DB_USER:-gestor}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-gestor_local}
+    volumes:
+      - dbdata:/var/lib/mysql
+      # El esquema se carga solo la primera vez que se crea el volumen.
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      # Fila inicial de hibernate_sequence (sin ella el backend no puede generar ids).
+      - ./database/semilla_docker.sql:/docker-entrypoint-initdb.d/02-semilla.sql:ro
+    ports:
+      - "127.0.0.1:3307:3306"   # solo para consultar la BD desde el equipo; 3306 puede estar ocupado
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  backend:
+    build: ./Ejercicio5MyAPIGestor
+    image: gestor-backend:1.0
+    container_name: gestor-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/dbgestor
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-gestor}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-gestor_local}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8081'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+    restart: unless-stopped
+
+  frontend:
+    build: ./Ejercicio5Cliente
+    image: gestor-frontend:1.0
+    container_name: gestor-frontend
+    environment:
+      GESTOR_BACKEND_URL: http://backend:8081
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "9080:9080"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9080'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  dbdata:
