@@ -5,6 +5,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -65,6 +66,20 @@ class GestorControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].nombre").value("Proyecto A"));
 		servidor.verify();
+	}
+
+	@Test
+	@DisplayName("AUT-D02 Despliegue en la nube: no se reenvian las cabeceras del backend")
+	void AUT_D02_loginNoReenviaCabecerasDelBackend() throws Exception {
+		backend.expect(requestTo("http://localhost:8081/getUsuarioLogin"))
+				.andExpect(method(HttpMethod.POST))
+				.andRespond(withSuccess("{\"id_usuario\":1,\"nombre\":\"Ana\"}", MediaType.APPLICATION_JSON)
+						.header("X-Cabecera-Del-Backend", "no-debe-pasar"));
+
+		mvc.perform(post("/verificarLogin").contentType(MediaType.APPLICATION_JSON).content("{\"correo_electronico\":\"a@b.c\",\"contrasena\":\"x\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.nombre").value("Ana"))
+				.andExpect(header().doesNotExist("X-Cabecera-Del-Backend"));
 	}
 
 	@Test

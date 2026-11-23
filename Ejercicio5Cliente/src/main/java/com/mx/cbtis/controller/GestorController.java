@@ -168,7 +168,9 @@ public class GestorController {
 		String urlservicebd = backend + "/getUsuarioLogin";
 		ResponseEntity<Usuario> response = template.postForEntity(urlservicebd,paramUser,Usuario.class);
 		
-		return response;
+		// Solo se devuelven codigo y cuerpo: copiar las cabeceras del backend (Transfer-Encoding, etc.)
+		// provoca respuestas 502 detras de proxies como el de Render.
+		return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
 
 	}
 	
@@ -300,14 +302,14 @@ public class GestorController {
 	public ResponseEntity<Integer> verificarTarea(@RequestBody Tareas paramName){
 		String urlservicebd = backend + "/addTareas";
 		ResponseEntity<Integer> response = template.postForEntity(urlservicebd, paramName, Integer.class);
-		return response;
+		return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
 	}
 	
 	@PostMapping("/cambiosTareas")
 	public ResponseEntity<Integer> cambiosTareas(@RequestBody Tareas paramDatos){
 		String urlservicebd = backend + "/addTareas";
 		ResponseEntity<Integer> response = template.postForEntity(urlservicebd, paramDatos, Integer.class);
-		return response;
+		return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
 	}
 	
 	@PostMapping("/consultarTareas")

@@ -61,3 +61,18 @@ docker build -t gestor-frontend:1.0 ./Ejercicio5Cliente
 ```
 
 Las pruebas unitarias y la cobertura se ejecutan en los pipelines de Jenkins (`jenkins/`); la construcción de las imágenes solo empaqueta el JAR.
+
+## Despliegue en la nube (Render + Neon)
+
+Las mismas imágenes Docker (cada `Dockerfile`) se despliegan en la nube construyéndolas desde este repositorio:
+
+| Componente | Plataforma | Dirección |
+|---|---|---|
+| Frontend (`Ejercicio5Cliente`) | Render, servicio web con Docker | https://gestor-frontend-6rbd.onrender.com |
+| Backend (`Ejercicio5MyAPIGestor`) | Render, servicio web con Docker | https://gestor-backend-6s3g.onrender.com |
+| Base de datos | Neon (PostgreSQL 16, región us-west-2) | conexión por variables de entorno |
+
+- El backend usa el mismo JAR que en Docker Compose; en la nube se conecta a PostgreSQL con `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` y `SPRING_DATASOURCE_PASSWORD` (se agregó el driver de PostgreSQL junto al de MariaDB).
+- El frontend recibe la dirección del backend en `GESTOR_BACKEND_URL`.
+- Para evitar demoras por el peso de las imágenes, los GIF, videos y el fondo del frontend se comprimieron sin cambiar su nombre ni su formato (de 409 MB a unos 50 MB), lo que reduce el tamaño de la imagen Docker y el tiempo de carga de las páginas.
+- En el plan gratuito de Render los servicios se duermen tras 15 minutos sin tráfico y la primera petición tarda unos segundos en despertarlos.
